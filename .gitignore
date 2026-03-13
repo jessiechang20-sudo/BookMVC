@@ -1,0 +1,40 @@
+# Build
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.ide
+
+# Rider
+.idea/
+
+# OS
+.DS_Store
+
+# ASP.NET Core (do not commit secrets)
+appsettings.json
+appsettings.Development.json
+appsettings.*.Local.json
+!appsettings.json.template
+
+
+# Uploaded files
+**/wwwroot/upload/
+
+# Logs
+*.log
+
+# NuGet
+*.nupkg
+.nuget/
+
+# Debug
+*.pdb
+
+# Others
+gulpfile.js
+node_modules/

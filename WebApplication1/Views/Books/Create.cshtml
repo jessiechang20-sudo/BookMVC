@@ -1,0 +1,46 @@
+﻿@model WebApplication1.Models.ViewModels.BookCreateVm
+
+@{
+    ViewData["Title"] = "Create"; 
+}
+
+<h2>新增</h2>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()    
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="mb-3">
+        <label asp-for="Isbn" class="form-label">ISBN</label>
+        <input asp-for="Isbn" class="form-control" /> 
+        <span asp-validation-for="Isbn" class="text-danger"></span>  
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Title" class="form-label">書名</label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Author" class="form-label">作者</label>
+        <input asp-for="Author" class="form-control" />
+        <span asp-validation-for="Author" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NewCover" class="form-label">封面圖片</label>
+        <input asp-for="NewCover" type="file" class="form-control" accept=".jpg, .jpeg, .png" />  
+        <span asp-validation-for="NewCover" class="text-danger"></span>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <a asp-action="Index" class="btn btn-secondary">取消</a>
+        <button type="submit" class="btn btn-primary">新增</button>
+    </div>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />   
+}

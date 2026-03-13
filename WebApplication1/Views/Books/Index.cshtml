@@ -1,0 +1,140 @@
+﻿
+@model WebApplication1.Models.ViewModels.BookIndexVm
+@{
+    ViewData["Title"] = "Books";
+
+    var currentSort = (string?)ViewBag.Sort ?? "";
+    string NextSort(string column) => currentSort == column ? $"{column}_desc" : column;
+
+    int rowNo;
+}
+
+
+
+<h2>Books</h2>
+
+<div>
+    <a asp-action="Create" class="btn btn-primary">新增一筆</a>
+</div>
+
+
+<form asp-action="Index" method="get">
+    <div class="d-flex justify-content-end  align-items-center gap-2 mb-2">
+        <label for="sort" class="form-label">排序</label>
+        <select asp-for="Sort" asp-items="Model.SortOptions" id="sort" class="form-select w-auto" style="width: 180px;" onchange="this.form.submit()">
+        </select>
+    </div>
+
+    <div class="d-flex gap-2 mb-2">
+        <input asp-for="Keyword" type="text" class="form-control " style="width: 500px;" value="@Model.Keyword" placeholder="請輸入書名、ISBN或作者任一關鍵字查詢...">
+        <button type="submit" class="btn btn-primary">搜尋</button>
+        <a asp-action="Index" class="btn btn-secondary">取消</a>
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <select asp-for="PageSize" onchange="this.form.submit()">
+            <option value="5">5筆</option>
+            <option value="10">10筆</option>
+            <option value="20">20筆</option>
+        </select>
+    </div>
+
+
+
+    <p>共 @(Model.TotalCount) 筆</p>
+
+
+
+    <table class="table fixed-table  table-space">
+        <colgroup>
+            <col style="width: 5%;">
+            <col style="width: 15%;">
+            <col style="width: 5%;">
+            <col style="width: 15%;">
+            <col style="width: 25%;">
+            <col style="width: 20%;">
+            <col style="width: 15%;">
+        </colgroup>
+        <thead>
+            <tr>
+                <th>
+                    No
+                </th>
+                <th>
+                    書籍封面
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-Sort="@(NextSort("id"))" asp-route-Keyword="@Model.Keyword" asp-route-PageSize="@Model.PageSize" class="text-black">ID </a>
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-Sort="@(NextSort("isbn"))" asp-route-Keyword="@Model.Keyword" asp-route-PageSize="@Model.PageSize" class="text-black">ISBN </a>
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-Sort="@(NextSort("title"))" asp-route-Keyword="@Model.Keyword" asp-route-PageSize="@Model.PageSize" class="text-black">書名 </a>
+                </th>
+                <th>
+                    作者
+                </th>
+                <th>
+                    管理
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @for (int i = 1; i <= Model.Books.Count; i++)
+            {
+                rowNo = (Model.Page - 1) * Model.PageSize + i;
+                var b = Model.Books[i - 1];
+                <tr>
+                    <td>@rowNo</td>
+                    <td>
+                        @if (b.BCoverFileName is not null)
+                        {
+                            <img id="preview" src="/upload/@b.BCoverFileName" alt="封面預覽" style="max-width:150px;" />
+                        }
+                        else
+                        {
+                            <span>尚無封面照片</span>
+                        }
+                    </td>
+                    <td>@b.Id</td>
+                    <td class="td-wrap">@b.Isbn</td>
+                    <td class="td-wrap">@b.Title</td>
+                    <td class="td-wrap">@(b.Author ?? "-")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@b.Id">內容</a> |
+                        <a asp-action="Edit" asp-route-id="@b.Id">編輯</a> |
+                        <a asp-action="Delete" asp-route-id="@b.Id">刪除</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            @{
+                int prev = Model.Page - 1;
+                int next = Model.Page + 1;
+            }
+
+            <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+                <a asp-action="Index" asp-route-Sort="@Model.Sort" asp-route-Keyword="@Model.Keyword" asp-route-Page="@prev" asp-route-PageSize="@Model.PageSize" class="page-link"> &lt; </a>
+            </li>
+
+            @for (int p = 1; p <= Model.TotalPages; p++)
+            {
+                <li class="page-item @(p == Model.Page ? "active" : "")">
+                    <a asp-action="Index" asp-route-Sort="@Model.Sort" asp-route-Keyword="@Model.Keyword" asp-route-Page="@p" asp-route-PageSize="@Model.PageSize" class="page-link">@p</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+                <a asp-action="Index" asp-route-Sort="@Model.Sort" asp-route-Keyword="@Model.Keyword" asp-route-Page="@next" asp-route-PageSize="@Model.PageSize" class="page-link"> &gt; </a>
+            </li>
+        </ul>
+    </nav>
+</form>
+
+

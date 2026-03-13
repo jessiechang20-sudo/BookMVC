@@ -1,0 +1,12 @@
+{
+  "ConnectionStrings": {
+    "Default": "Server=SERVER_NAME;Database=DB_NAME;Trusted_Connection=True;TrustServerCertificate=True"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}
