@@ -196,7 +196,7 @@ namespace WebApplication1.Services
             {
                 _bCoverStorage.DeleteImg(OriginalCover);
             }
-            result.Ok = true;
+            
             return result;
         }
 
