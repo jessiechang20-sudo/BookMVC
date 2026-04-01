@@ -31,8 +31,8 @@ namespace WebApplication1.Controllers
                     new SelectListItem { Value = "id_desc", Text = "ID↓"},
                     new SelectListItem { Value = "isbn", Text = "ISBN↑" },
                     new SelectListItem { Value = "isbn_desc", Text = "ISBN↓" },
-                    new SelectListItem { Value = "title", Text = "Title↑" },
-                    new SelectListItem { Value = "title_desc", Text = "Title↓" },
+                    new SelectListItem { Value = "title", Text = "書名↑" },
+                    new SelectListItem { Value = "title_desc", Text = "書名↓" },
                 };
 
             return View(vm);  

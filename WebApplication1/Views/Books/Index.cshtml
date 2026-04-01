@@ -1,5 +1,4 @@
-﻿
-@model WebApplication1.Models.ViewModels.BookIndexVm
+﻿@model WebApplication1.Models.ViewModels.BookIndexVm
 @{
     ViewData["Title"] = "Books";
 
@@ -26,7 +25,7 @@
     </div>
 
     <div class="d-flex gap-2 mb-2">
-        <input asp-for="Keyword" type="text" class="form-control " style="width: 500px;" value="@Model.Keyword" placeholder="請輸入書名、ISBN或作者任一關鍵字查詢...">
+        <input asp-for="Keyword" type="text" class="form-control " style="width: 500px;"  placeholder="請輸入書名、ISBN或作者任一關鍵字查詢..." />
         <button type="submit" class="btn btn-primary">搜尋</button>
         <a asp-action="Index" class="btn btn-secondary">取消</a>
     </div>
@@ -47,13 +46,13 @@
 
     <table class="table fixed-table  table-space">
         <colgroup>
-            <col style="width: 5%;">
-            <col style="width: 15%;">
-            <col style="width: 5%;">
-            <col style="width: 15%;">
-            <col style="width: 25%;">
-            <col style="width: 20%;">
-            <col style="width: 15%;">
+            <col style="width: 40px;">
+            <col style="width: 160px;">
+            <col style="width: 80px;">
+            <col style="width: 140px;">
+            <col style="width: 140px;">
+            <col style="width: 140px;">
+            <col style="width: 140px;">
         </colgroup>
         <thead>
             <tr>
