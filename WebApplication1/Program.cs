@@ -1,8 +1,10 @@
+using BookMvc.Data;
+using BookMvc.Services;
 using Microsoft.EntityFrameworkCore;
-using WebApplication1.Data;
-using WebApplication1.Services;
+using System.Reflection;
+using System.Text.Json.Serialization;
 
-namespace WebApplication1
+namespace BookMvc
 {
     public class Program
     {
@@ -11,17 +13,31 @@ namespace WebApplication1
             var builder = WebApplication.CreateBuilder(args);
 
 
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
 
             var connString = builder.Configuration.GetConnectionString("Default");
             builder.Services.AddDbContext<BookDbContext>(opt => opt.UseSqlServer(connString));
             builder.Services.AddScoped<IBookService, BookService>();
             builder.Services.AddScoped<IBCoverStorage, BCoverStorage>();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+            });
 
             var app = builder.Build();
 
 
-            if (!app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+            else
             {
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();

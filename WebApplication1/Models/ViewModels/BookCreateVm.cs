@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;  
 
-namespace WebApplication1.Models.ViewModels
+namespace BookMvc.Models.ViewModels
 {
     public sealed class BookCreateVm  
     {
@@ -15,6 +15,6 @@ namespace WebApplication1.Models.ViewModels
         [StringLength(100)]
         public string? Author { get; set; } 
 
-        public IFormFile? NewCover { get; set; }
+        public IFormFile? Image { get; set; }
     }
 }

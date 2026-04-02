@@ -1,7 +1,7 @@
-﻿using WebApplication1.Models.Entities;
+﻿using BookMvc.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace WebApplication1.Data
+namespace BookMvc.Data
 {
     public class DbSeeder
     {

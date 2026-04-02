@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using WebApplication1.Data;
+using BookMvc.Data;
 
 #nullable disable
 
-namespace WebApplication1.Migrations
+namespace BookMvc.Migrations
 {
     [DbContext(typeof(BookDbContext))]
     partial class BookDbContextModelSnapshot : ModelSnapshot
@@ -22,7 +22,7 @@ namespace WebApplication1.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("WebApplication1.Models.Entities.Book", b =>
+            modelBuilder.Entity("BookMvc.Models.Entities.Book", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

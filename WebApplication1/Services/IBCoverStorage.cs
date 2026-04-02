@@ -1,4 +1,4 @@
-﻿namespace WebApplication1.Services
+﻿namespace BookMvc.Services
 {
     public interface IBCoverStorage
     {

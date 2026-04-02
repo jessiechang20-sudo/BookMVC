@@ -1,4 +1,4 @@
-﻿namespace WebApplication1.Services.Resaults
+﻿namespace BookMvc.Services.Resaults
 {
     public sealed class OperationResult
     {

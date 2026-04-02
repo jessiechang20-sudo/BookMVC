@@ -1,8 +1,12 @@
-# Book Management System (ASP.NET Core MVC)
-本專案使用 ASP.NET Core MVC + EF Core 開發的書籍管理系統，提供書籍 CRUD、搜尋 / 排序 / 分頁、封面圖片上傳與顯示，以及基本資料驗證功能。
+# Book Management System (ASP.NET Core MVC + Web API)
+本專案使用 ASP.NET Core MVC + Web API + EF Core 開發的書籍管理系統，提供書籍 CRUD、搜尋 / 排序 / 分頁、封面圖片上傳與顯示，以及基本資料驗證功能。
 
+此專案同時包含：
+MVC 頁面功能：使用者透過網頁介面進行書籍管理
+Web API 功能：提供前後端分離、第三方系統串接使用
 
 ## Features
+### MVC
 - 書籍資料 CRUD
 - 搜尋 / 排序 / 分頁 
 - 書籍封面圖片上傳與顯示（上傳限制：最大5MB，僅允許 `.jpg` / `.jpeg` / `.png`）
@@ -11,6 +15,13 @@
 - Service / Controller 分層
 - EF Core Migration 建置/更新資料庫  
 
+### Web API
+- 取得書籍清單 API
+- 單筆書籍查詢 API
+- 新增書籍資料 API
+- 編輯書籍資料 API
+- 刪除書籍資料 API
+可透過 Swagger 測試 API
 
 
 ## Tech Stack
@@ -21,13 +32,12 @@
 - Bootstrap
 
 
-
 ## Project Structure 
 - `Controllers/`
 - `Services/`
 - `Data/`（DbContext）
 - `Migrations/`
-- `Models/`（Entities、ViewModels）
+- `Models/`（Entities、ViewModels、DTO、Inputs）
 - `Views/`
 - `wwwroot/upload/` （書籍封面圖片儲存位置）
 
@@ -40,7 +50,7 @@
   - Microsoft.EntityFrameworkCore.Design
   - Microsoft.EntityFrameworkCore.SqlServer
   - Microsoft.EntityFrameworkCore.Tools
-
+- Swashbuckle.AspNetCore
 
 
 ## Getting Started

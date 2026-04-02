@@ -1,4 +1,4 @@
-﻿@model WebApplication1.Models.ViewModels.BookCreateVm
+﻿@model BookMvc.Models.ViewModels.BookCreateVm
 
 @{
     ViewData["Title"] = "Create"; 
@@ -29,9 +29,9 @@
     </div>
 
     <div class="mb-3">
-        <label asp-for="NewCover" class="form-label">封面圖片</label>
-        <input asp-for="NewCover" type="file" class="form-control" accept=".jpg, .jpeg, .png" />  
-        <span asp-validation-for="NewCover" class="text-danger"></span>
+        <label asp-for="Image" class="form-label">封面圖片</label>
+        <input asp-for="Image" type="file" class="form-control" accept=".jpg, .jpeg, .png" />
+        <span asp-validation-for="Image" class="text-danger"></span>
     </div>
 
     <div class="d-flex justify-content-end gap-2">

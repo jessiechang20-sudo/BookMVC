@@ -1,4 +1,4 @@
-﻿@model WebApplication1.Models.ViewModels.BookEditVm
+﻿@model BookMvc.Models.ViewModels.BookEditVm
 
 @{
     ViewData["Title"] = "Edit";
@@ -32,9 +32,9 @@
 
     <div class="mb-3">
 
-        <label asp-for="NewCover" class="form-label">更新封面圖片</label>
-        <input asp-for="NewCover" type="file" class="form-control" accept=".jpg, .jpeg, .png" />
-        <span asp-validation-for="NewCover" class="text-bg-danger"></span>
+        <label asp-for="Image" class="form-label">更新封面圖片</label>
+        <input asp-for="Image" type="file" class="form-control" accept=".jpg, .jpeg, .png" />
+        <span asp-validation-for="Image" class="text-bg-danger"></span>
 
         @if (!string.IsNullOrWhiteSpace(@Model.OriginalCover))
         {

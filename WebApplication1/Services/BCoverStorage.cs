@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 
-namespace WebApplication1.Services
+namespace BookMvc.Services
 {
     public sealed class BCoverStorage : IBCoverStorage
     {

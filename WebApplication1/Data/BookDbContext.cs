@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using WebApplication1.Models.Entities;
+using BookMvc.Models.Entities;
 
-namespace WebApplication1.Data
+namespace BookMvc.Data
 {
     public sealed class BookDbContext :DbContext
     {

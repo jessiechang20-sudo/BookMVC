@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace BookMvc.Models.Entities
+namespace BookMvc.Models.DTO
 {
-    public sealed class Book
+    public class CreateDto
     {
         public int Id { get; set; }
 
@@ -17,6 +17,6 @@ namespace BookMvc.Models.Entities
 
         public DateTimeOffset CreatedAt { get; set; }
 
-        public string? BCoverFileName { get; set; } // 例如： "abc.jpg"書籍封面圖片檔名，後續使用GUID存檔名，避免檔名衝突
+        public string? ImgName { get; set; } // 例如： "abc.jpg"書籍封面圖片檔名，後續使用GUID存檔名，避免檔名衝突
     }
 }

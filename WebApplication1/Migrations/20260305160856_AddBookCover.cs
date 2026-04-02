@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace WebApplication1.Migrations
+namespace BookMvc.Migrations
 {
     /// <inheritdoc />
     public partial class AddBookCover : Migration

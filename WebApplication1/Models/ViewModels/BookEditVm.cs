@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations; 
 
-namespace WebApplication1.Models.ViewModels
+namespace BookMvc.Models.ViewModels
 {
     public class BookEditVm
     {
@@ -18,8 +18,8 @@ namespace WebApplication1.Models.ViewModels
         [StringLength(100)]
         public string? Author { get; set; }
 
-        public IFormFile? NewCover { get; set; } //使用者新上傳的書籍封面圖片
+        public IFormFile? Image { get; set; } //使用者新上傳的書籍封面圖片
         public string? OriginalCover { get; set; } //原本的封面圖片檔名
-        public IFormFile? RemoveCover { get; set; } //勾選「移除封面圖片」
+
     }
 }

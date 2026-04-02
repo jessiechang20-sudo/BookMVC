@@ -1,20 +1,22 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using System.Numerics;
-using WebApplication1.Data;
-using WebApplication1.Models.Entities;
-using WebApplication1.Models.ViewModels;
-using WebApplication1.Services.Resaults;
+using BookMvc.Data;
+using BookMvc.Models.Entities;
+using BookMvc.Models.ViewModels;
+using BookMvc.Services.Resaults;
+using BookMvc.Models.Inputs;
+using BookMvc.Models.Common;
 
+using BookMvc.Services;
 
-
-namespace WebApplication1.Services
+namespace BookMvc.Services
 {
-    public sealed class BookService : IBookService 
+    public sealed class BookService : IBookService
     {
-        private readonly BookDbContext _db; 
+        private readonly BookDbContext _db;
         private readonly IBCoverStorage _bCoverStorage;
         public BookService(BookDbContext db, IBCoverStorage bCoverStorage)
         {
@@ -23,41 +25,40 @@ namespace WebApplication1.Services
         }
 
         //查詢
-        public async Task<(List<Book> books, int totalcount)> GetListAsync(BookIndexVm vm, CancellationToken ct)
+        public async Task<(List<Book> books, int totalcount)> GetListAsync(QueryInput input, CancellationToken ct)
         {
-            var query = _db.Books.AsNoTracking(); 
+            var query = _db.Books.AsNoTracking();
 
 
             // (1)Search
-            if (!string.IsNullOrWhiteSpace(vm.Keyword))
+            if (!string.IsNullOrWhiteSpace(input.Keyword))
             {
-                vm.Keyword = vm.Keyword.Trim();
-                query = query.Where(x => x.Isbn.Contains(vm.Keyword) || x.Title.Contains(vm.Keyword) || (x.Author != null && x.Author.Contains(vm.Keyword)));
+                input.Keyword = input.Keyword.Trim();
+                query = query.Where(x => x.Isbn.Contains(input.Keyword) || x.Title.Contains(input.Keyword) || (x.Author != null && x.Author.Contains(input.Keyword)));
             }
 
 
             // (2)Sort
-            query = vm.Sort switch
+            query = input.Sort switch
             {
-                "id" => query.OrderBy(x => x.Id),
-                "id_desc" => query.OrderByDescending(x => x.Id),
+                SortOption.id => query.OrderBy(x => x.Id),
+                SortOption.id_desc => query.OrderByDescending(x => x.Id),
 
-                "isbn" => query.OrderBy(x => x.Isbn),
-                "isbn_desc" => query.OrderByDescending(x => x.Isbn),
+                SortOption.isbn => query.OrderBy(x => x.Isbn),
+                SortOption.isbn_desc => query.OrderByDescending(x => x.Isbn),
 
-                "title" => query.OrderBy(x => x.Title),
-                "title_desc" => query.OrderByDescending(x => x.Title),
+                SortOption.title => query.OrderBy(x => x.Title),
+                SortOption.title_desc => query.OrderByDescending(x => x.Title),
 
                 _ => query.OrderByDescending(x => x.Id)
             };
 
             // (3)Page
-            vm.Page = vm.Page < 1 ? 1 : vm.Page;
-            vm.TotalCount = await query.CountAsync(ct); 
-            vm.Page = vm.TotalPages < vm.Page ? vm.TotalPages : vm.Page;
-            var books = await query.Skip((vm.Page - 1) * vm.PageSize).Take(vm.PageSize).ToListAsync(ct); 
+            input.Page = input.Page < 1 ? 1 : input.Page;
+            int totalCount = await query.CountAsync(ct);
+            var books = await query.Skip((input.Page - 1) * input.PageSize).Take(input.PageSize).ToListAsync(ct);
 
-            return (books, vm.TotalCount);
+            return (books, totalCount);
         }
 
 
@@ -70,18 +71,18 @@ namespace WebApplication1.Services
 
 
         //新增 //注意唯一性
-        public async Task<OperationResult> CreateAsync(BookCreateVm vm, CancellationToken ct)  
+        public async Task<(OperationResult , Book?)> CreateAsync(CreateInput input, CancellationToken ct)
         {
-            string isbn = vm.Isbn.Trim();
+            string isbn = input.Isbn.Trim();
             var result = new OperationResult();
 
-            if (await _db.Books.AnyAsync(x => x.Isbn == isbn, ct)) 
+            if (await _db.Books.AnyAsync(x => x.Isbn == isbn, ct))
             {
                 result.Ok = false;
                 result.Errors.Add(
                     new ValidationError
                     {
-                        Field = nameof(vm.Isbn),
+                        Field = "Isbn",
                         Message = "ISBN 已存在"
                     }
                 );
@@ -91,9 +92,9 @@ namespace WebApplication1.Services
             string? fileName = null;
             try
             {
-                if (vm.NewCover is not null)
+                if (input.Image is not null)
                 {
-                    fileName = await _bCoverStorage.SaveImgAsync(vm.NewCover, ct);
+                    fileName = await _bCoverStorage.SaveImgAsync(input.Image, ct);
                 }
             }
             catch (InvalidOperationException ex)
@@ -102,7 +103,7 @@ namespace WebApplication1.Services
                 result.Errors.Add(
                     new ValidationError
                     {
-                        Field = nameof(vm.NewCover),
+                        Field = "Image",
                         Message = ex.Message
                     }
                 );
@@ -110,28 +111,28 @@ namespace WebApplication1.Services
 
             if (result.Errors.Count > 0)
             {
-                return result;
+                return (result , null);
             }
 
             var book = new Book
             {
                 Isbn = isbn,
-                Title = vm.Title.Trim(),
-                Author = string.IsNullOrWhiteSpace(vm.Author) ? null : vm.Author.Trim(),
+                Title = input.Title.Trim(),
+                Author = string.IsNullOrWhiteSpace(input.Author) ? null : input.Author.Trim(),
                 BCoverFileName = fileName,
                 CreatedAt = DateTimeOffset.UtcNow
             };
-            _db.Books.Add(book); 
-            await _db.SaveChangesAsync(ct); 
-            return result; 
+            _db.Books.Add(book);
+            await _db.SaveChangesAsync(ct);
+            return (result , book);
         }
 
 
         //更新 //注意唯一性
-        public async Task<OperationResult> UpdateAsync(int id, BookEditVm vm, CancellationToken ct)
+        public async Task<(OperationResult , Book?)> UpdateAsync(int id, EditInput input, CancellationToken ct)
         {
 
-            var book = await _db.Books.SingleOrDefaultAsync(x => x.Id == id, ct); 
+            var book = await _db.Books.SingleOrDefaultAsync(x => x.Id == id, ct);
             var result = new OperationResult();
             if (book is null)
             {
@@ -143,17 +144,17 @@ namespace WebApplication1.Services
                         Message = "找不到書籍"
                     }
                 );
-                return result;
+                return (result , null);
             }
 
-            string isbn = vm.Isbn.Trim();
+            string isbn = input.Isbn.Trim();
             if (await _db.Books.AnyAsync(x => x.Isbn == isbn && x.Id != id, ct)) //不能改到別本書的 ISBN，檢查資料庫裡有沒有這個 ISBN 的書，且 Id 不同於目前要修改的書。
             {
                 result.Ok = false;
                 result.Errors.Add(
                     new ValidationError
                     {
-                        Field = nameof(vm.Isbn),
+                        Field = nameof(input.Isbn),
                         Message = "ISBN 已存在"
                     }
                 );
@@ -163,9 +164,9 @@ namespace WebApplication1.Services
             string? OriginalCover = book.BCoverFileName;
             try
             {
-                if (vm.NewCover is not null)
+                if (input.Image is not null)
                 {
-                    book.BCoverFileName = await _bCoverStorage.SaveImgAsync(vm.NewCover, ct);
+                    book.BCoverFileName = await _bCoverStorage.SaveImgAsync(input.Image, ct);
                 }
             }
             catch (InvalidOperationException ex)
@@ -174,7 +175,7 @@ namespace WebApplication1.Services
                 result.Errors.Add(
                     new ValidationError
                     {
-                        Field = nameof(vm.NewCover),
+                        Field = nameof(input.Image),
                         Message = ex.Message
                     }
                 );
@@ -182,12 +183,13 @@ namespace WebApplication1.Services
 
             if (result.Errors.Count > 0)
             {
-                return result;
+                return (result , null);
             }
 
             book.Isbn = isbn;
-            book.Title = vm.Title.Trim();
-            book.Author = string.IsNullOrWhiteSpace(vm.Author) ? null : vm.Author.Trim();
+            book.Title = input.Title.Trim();
+            book.Author = string.IsNullOrWhiteSpace(input.Author) ? null : input.Author.Trim();
+            book.CreatedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync(ct);
 
 
@@ -196,8 +198,8 @@ namespace WebApplication1.Services
             {
                 _bCoverStorage.DeleteImg(OriginalCover);
             }
-            
-            return result;
+
+            return (result , book);
         }
 
 
@@ -209,10 +211,10 @@ namespace WebApplication1.Services
             {
                 return false;
             }
-            _db.Books.Remove(book); 
+            _db.Books.Remove(book);
             await _db.SaveChangesAsync(ct);
 
-            if ( !string.IsNullOrWhiteSpace(book.BCoverFileName))
+            if (!string.IsNullOrWhiteSpace(book.BCoverFileName))
             {
                 _bCoverStorage.DeleteImg(book.BCoverFileName);
             }

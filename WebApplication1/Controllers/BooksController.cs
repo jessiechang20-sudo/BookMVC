@@ -1,18 +1,20 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering; 
-using WebApplication1.Models;
-using WebApplication1.Models.Entities;
-using WebApplication1.Models.ViewModels;
-using WebApplication1.Services; 
+using Microsoft.AspNetCore.Mvc.Rendering;
+using BookMvc.Models;
+using BookMvc.Models.Entities;
+using BookMvc.Models.ViewModels;
+using BookMvc.Services;
+using BookMvc.Models.Inputs;
+using BookMvc.Models.Common;
 
-namespace WebApplication1.Controllers
+namespace BookMvc.Controllers
 {
     public sealed class BooksController : Controller
     {
-        private readonly IBookService _svc; 
+        private readonly IBookService _svc;
 
-        public BooksController(IBookService svc )
+        public BooksController(IBookService svc)
         {
             _svc = svc;
         }
@@ -23,7 +25,18 @@ namespace WebApplication1.Controllers
         {
             vm.Sort ??= "id_desc";
             ViewBag.Sort = vm.Sort;
-            (vm.Books, vm.TotalCount) = await _svc.GetListAsync(vm, ct);
+            Enum.TryParse<SortOption>(vm.Sort, true, out var sort);
+
+            var input = new QueryInput()
+            {
+                Keyword = vm.Keyword,
+                Sort = sort,
+                Page = vm.Page,
+                PageSize = vm.PageSize
+            };
+
+
+            (vm.Books, vm.TotalCount) = await _svc.GetListAsync(input, ct);
 
             vm.SortOptions = new List<SelectListItem>
                 {
@@ -35,7 +48,7 @@ namespace WebApplication1.Controllers
                     new SelectListItem { Value = "title_desc", Text = "書名↓" },
                 };
 
-            return View(vm);  
+            return View(vm);
         }
 
 
@@ -46,7 +59,7 @@ namespace WebApplication1.Controllers
             var book = await _svc.GetByIdAsync(id, ct);
             if (book is null)
             {
-                return NotFound(); 
+                return NotFound();
             }
             return View(book);
         }
@@ -55,9 +68,9 @@ namespace WebApplication1.Controllers
 
         //新增Create
         [HttpGet]
-        public IActionResult Create() 
+        public IActionResult Create()
         {
-            return View(new BookCreateVm()); 
+            return View(new BookCreateVm());
         }
 
 
@@ -67,16 +80,24 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid is false) //基本表單驗證
             {
-                return View(vm); 
+                return View(vm);
             }
 
-            var result = await _svc.CreateAsync(vm, ct);
-            if (result.Ok is false)
+            var input = new CreateInput()
             {
-                
-                foreach (var error in result.Errors) 
-                { 
-                    ModelState.AddModelError( error.Field ?? string.Empty, error.Message ?? "未知錯誤");  //顯示邏輯驗證錯誤
+                Isbn = vm.Isbn,
+                Title = vm.Title,
+                Author = vm.Author,
+                Image = vm.Image,
+            }; 
+
+            var (result , book) = await _svc.CreateAsync(input, ct);
+            if (result.Ok is false || book is null)
+            {
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(error.Field ?? string.Empty, error.Message ?? "未知錯誤");  //顯示邏輯驗證錯誤
                 }
                 return View(vm);
             }
@@ -86,14 +107,14 @@ namespace WebApplication1.Controllers
 
         //編輯更新
         [HttpGet]
-        public async Task<IActionResult> Edit( int id,  CancellationToken ct)
+        public async Task<IActionResult> Edit(int id, CancellationToken ct)
         {
             var book = await _svc.GetByIdAsync(id, ct);
             if (book is null)
             {
                 return NotFound();
             }
-            var vm = new BookEditVm  
+            var vm = new BookEditVm
             {
                 Id = book.Id,
                 Isbn = book.Isbn,
@@ -112,7 +133,7 @@ namespace WebApplication1.Controllers
 
             if (id != vm.Id) //id從網址來，vm.Id從表單來，兩者要一致才合理
             {
-                return BadRequest(); 
+                return BadRequest();
             }
 
             if (ModelState.IsValid is false) //基本表單驗證
@@ -120,8 +141,16 @@ namespace WebApplication1.Controllers
                 return View(vm);
             }
 
-            var result = await _svc.UpdateAsync(id, vm, ct);
-            if (result.Ok is false)
+            var input = new EditInput()
+            {
+                Isbn = vm.Isbn,
+                Title = vm.Title,
+                Author = vm.Author,
+                Image = vm.Image,
+            };
+
+            var (result , book) = await _svc.UpdateAsync(id, input, ct);
+            if (result.Ok is false || book is null)
             {
                 foreach (var error in result.Errors)
                 {
@@ -143,7 +172,7 @@ namespace WebApplication1.Controllers
             {
                 return NotFound();
             }
-            return View(book); 
+            return View(book);
         }
 
 
@@ -155,7 +184,7 @@ namespace WebApplication1.Controllers
             var ok = await _svc.DeleteAsync(id, ct);
             if (ok is false)
             {
-                return NotFound(); 
+                return NotFound();
             }
             return RedirectToAction(nameof(Index));
         }
