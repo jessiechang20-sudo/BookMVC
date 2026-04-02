@@ -16,12 +16,13 @@ Web API 功能：提供前後端分離、第三方系統串接使用
 - EF Core Migration 建置/更新資料庫  
 
 ### Web API
+可透過 Swagger 測試 API
 - 取得書籍清單 API
 - 單筆書籍查詢 API
 - 新增書籍資料 API
 - 編輯書籍資料 API
 - 刪除書籍資料 API
-可透過 Swagger 測試 API
+
 
 
 ## Tech Stack
