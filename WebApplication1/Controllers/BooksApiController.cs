@@ -12,9 +12,11 @@ namespace BookMvc.Controllers
     public class BooksApiController : ControllerBase
     {
         private readonly IBookService _svc;
-        public BooksApiController(IBookService svc)
+        private readonly ILogger<BooksApiController> _logger;
+        public BooksApiController(IBookService svc, ILogger<BooksApiController> logger)
         {
             _svc = svc;
+            _logger = logger;
         }
 
 
@@ -76,6 +78,7 @@ namespace BookMvc.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateApi([FromForm] CreateInput input, CancellationToken ct)
         {
+            _logger.LogInformation("[BOOK_API_CREATE] Isbn: {Isbn} , Title: {Title} ,HasFile: {HasFile} ", input.Isbn, input.Title , input.Image != null);
             var (result, book) = await _svc.CreateAsync(input, ct);
             if (result.Ok is false || book is null)
             {
@@ -111,6 +114,7 @@ namespace BookMvc.Controllers
         [HttpPut("edit/{id:int}")]
         public async Task<IActionResult> EditApi(int id, [FromForm] EditInput input, CancellationToken ct)
         {
+            _logger.LogInformation("[BOOK_API_EDIT] Id: {Id} , Isbn: {Isbn} , Title: {Title} ,HasFile: {HasFile}", id, input.Isbn, input.Title , input.Image != null);
             var (result, book) = await _svc.UpdateAsync(id, input, ct);
             if (result.Ok is false || book is null)
             {

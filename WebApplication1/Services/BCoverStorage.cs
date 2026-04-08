@@ -7,9 +7,11 @@ namespace BookMvc.Services
     public sealed class BCoverStorage : IBCoverStorage
     {
         private readonly IWebHostEnvironment _env; //Web 主機的環境資訊，可以用來取得 Web 根目錄的路徑。
-        public BCoverStorage(IWebHostEnvironment env) 
+        private readonly ILogger<BCoverStorage> _logger;
+        public BCoverStorage(IWebHostEnvironment env, ILogger<BCoverStorage> logger)
         {
             _env = env;
+            _logger = logger;
         }
         private static readonly HashSet<string> _allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)  //比較副檔名字串時忽略大小寫
         {
@@ -52,10 +54,10 @@ namespace BookMvc.Services
 
             var guid = Guid.NewGuid().ToString("N"); //檔名用GUID(不帶連字號)
             string fileName = $"{guid}{ext.ToLowerInvariant()}"; //並將副檔名轉換為小寫，以確保一致性的結果。
-            var fullPath = Path.Combine(_env.WebRootPath, "upload", fileName); 
-            await using var stream = File.Create(fullPath);  
-            await file.CopyToAsync(stream, ct); 
-            return fileName; 
+            var fullPath = Path.Combine(_env.WebRootPath, "upload", fileName);
+            await using var stream = File.Create(fullPath);
+            await file.CopyToAsync(stream, ct);
+            return fileName;
 
         }
 
@@ -66,9 +68,17 @@ namespace BookMvc.Services
         {
 
             var fullPath = Path.Combine(_env.WebRootPath, "upload", fileName);
-            if (File.Exists(fullPath))
+
+            try
             {
-                File.Delete(fullPath); //刪除指定路徑的檔案
+                if (File.Exists(fullPath))
+                {
+                    File.Delete(fullPath); //刪除指定路徑的檔案
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[IMAGE_DELETE_FAIL] FileName: {fileName} , FullPath: {fullPath}" , fileName , fullPath );
             }
         }
 

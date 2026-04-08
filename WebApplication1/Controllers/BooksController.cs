@@ -13,10 +13,11 @@ namespace BookMvc.Controllers
     public sealed class BooksController : Controller
     {
         private readonly IBookService _svc;
-
-        public BooksController(IBookService svc)
+        private readonly ILogger<BooksController> _logger;  
+        public BooksController(IBookService svc, ILogger<BooksController> logger)
         {
             _svc = svc;
+            _logger = logger;
         }
 
 
@@ -78,6 +79,7 @@ namespace BookMvc.Controllers
         [ValidateAntiForgeryToken]  //防止 CSRF（跨站請求偽造）
         public async Task<IActionResult> Create(BookCreateVm vm, CancellationToken ct)
         {
+            _logger.LogInformation("[BOOK_CREATE] Isbn: {Isbn} , Title: {Title} ,HasFile: {HasFile} ", vm.Isbn, vm.Title, vm.Image != null );
             if (ModelState.IsValid is false) //基本表單驗證
             {
                 return View(vm);
@@ -130,7 +132,7 @@ namespace BookMvc.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit([FromRoute] int id, BookEditVm vm, CancellationToken ct)
         {
-
+            _logger.LogInformation("[BOOK_EDIT] Id: {Id} , Title: {Title} , HasOldFile: {HasOldFile}, HasNewFile: {HasNewFile} ", id, vm.Title , vm.OriginalCover != null, vm.Image !=null );
             if (id != vm.Id) //id從網址來，vm.Id從表單來，兩者要一致才合理
             {
                 return BadRequest();

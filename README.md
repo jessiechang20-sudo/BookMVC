@@ -1,5 +1,5 @@
 # Book Management System (ASP.NET Core MVC + Web API)
-本專案使用 ASP.NET Core MVC + Web API + EF Core 開發的書籍管理系統，提供書籍 CRUD、搜尋 / 排序 / 分頁、封面圖片上傳與顯示，以及基本資料驗證功能。
+本專案使用 ASP.NET Core MVC + Web API + EF Core 開發的書籍管理系統，提供書籍 CRUD、搜尋 / 排序 / 分頁、封面圖片上傳與顯示，以及基本資料驗證、logging記錄功能。
 
 此專案同時包含：
 MVC 頁面功能：使用者透過網頁介面進行書籍管理

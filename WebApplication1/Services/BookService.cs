@@ -11,6 +11,7 @@ using BookMvc.Models.Inputs;
 using BookMvc.Models.Common;
 
 using BookMvc.Services;
+using AspNetCoreGeneratedDocument;
 
 namespace BookMvc.Services
 {
@@ -18,10 +19,12 @@ namespace BookMvc.Services
     {
         private readonly BookDbContext _db;
         private readonly IBCoverStorage _bCoverStorage;
-        public BookService(BookDbContext db, IBCoverStorage bCoverStorage)
+        private readonly ILogger<BookService> _logger;
+        public BookService(BookDbContext db, IBCoverStorage bCoverStorage, ILogger<BookService> logger)
         {
             _db = db;
             _bCoverStorage = bCoverStorage;
+            _logger = logger;
         }
 
         //查詢
@@ -71,7 +74,7 @@ namespace BookMvc.Services
 
 
         //新增 //注意唯一性
-        public async Task<(OperationResult , Book?)> CreateAsync(CreateInput input, CancellationToken ct)
+        public async Task<(OperationResult, Book?)> CreateAsync(CreateInput input, CancellationToken ct)
         {
             string isbn = input.Isbn.Trim();
             var result = new OperationResult();
@@ -107,11 +110,12 @@ namespace BookMvc.Services
                         Message = ex.Message
                     }
                 );
+                _logger.LogError(ex, "[BOOK_CREATE_UPLOAD_FAIL] Isbn: {Isbn} , Title: {Title} , ImgName: {ImgName}", input.Isbn, input.Title, input.Image?.FileName);
             }
 
             if (result.Errors.Count > 0)
             {
-                return (result , null);
+                return (result, null);
             }
 
             var book = new Book
@@ -123,13 +127,25 @@ namespace BookMvc.Services
                 CreatedAt = DateTimeOffset.UtcNow
             };
             _db.Books.Add(book);
-            await _db.SaveChangesAsync(ct);
-            return (result , book);
+
+            try
+            {
+                await _db.SaveChangesAsync(ct);
+                _logger.LogInformation("[BOOK_CREATE_SUCCESS] Id: {Id}, Isbn: {Isbn} , Title: {Title}", book.Id, book.Isbn, book.Title);
+                return (result, book);
+            }
+            catch (Exception ex)
+            {
+                result.Ok = false;
+                _logger.LogError(ex, "[BOOK_CREATE_DBSAVE_FAIL] Isbn: {Isbn} , Title: {Title}", book.Isbn, book.Title);
+                return (result, null);
+            }
+
         }
 
 
         //更新 //注意唯一性
-        public async Task<(OperationResult , Book?)> UpdateAsync(int id, EditInput input, CancellationToken ct)
+        public async Task<(OperationResult, Book?)> UpdateAsync(int id, EditInput input, CancellationToken ct)
         {
 
             var book = await _db.Books.SingleOrDefaultAsync(x => x.Id == id, ct);
@@ -144,7 +160,7 @@ namespace BookMvc.Services
                         Message = "找不到書籍"
                     }
                 );
-                return (result , null);
+                return (result, null);
             }
 
             string isbn = input.Isbn.Trim();
@@ -179,27 +195,37 @@ namespace BookMvc.Services
                         Message = ex.Message
                     }
                 );
+                _logger.LogError(ex, "[BOOK_EDIT_UPLOAD_FAIL] Id: {Id} , Title: {Title} , ImgName: {ImgName}", id, input.Title, input.Image?.FileName);
             }
 
             if (result.Errors.Count > 0)
             {
-                return (result , null);
+                return (result, null);
             }
 
             book.Isbn = isbn;
             book.Title = input.Title.Trim();
             book.Author = string.IsNullOrWhiteSpace(input.Author) ? null : input.Author.Trim();
             book.CreatedAt = DateTime.UtcNow;
-            await _db.SaveChangesAsync(ct);
 
-
-            //刪除舊封面//如果舊封面檔名不為 null，且跟新的封面檔名不同，才刪除舊封面檔案。
-            if (OriginalCover != book.BCoverFileName && OriginalCover != null && book.BCoverFileName != null)
+            try
             {
-                _bCoverStorage.DeleteImg(OriginalCover);
-            }
+                await _db.SaveChangesAsync(ct);
+                _logger.LogInformation("[BOOK_EDIT_SUCCESS] Id: {Id}, Isbn: {Isbn} , Title: {Title}", book.Id, book.Isbn, book.Title);
 
-            return (result , book);
+                //刪除舊封面//如果舊封面檔名不為 null，且跟新的封面檔名不同，才刪除舊封面檔案。
+                if (OriginalCover != book.BCoverFileName && OriginalCover != null && book.BCoverFileName != null)
+                {
+                    _bCoverStorage.DeleteImg(OriginalCover);
+                }
+
+                return (result, book);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[BOOK_EDIT_DBSAVE_FAIL] Id: {Id}, Isbn: {Isbn} , Title: {Title}", book.Id, book.Isbn, book.Title);
+                return (result, null);
+            }
         }
 
 
@@ -212,14 +238,25 @@ namespace BookMvc.Services
                 return false;
             }
             _db.Books.Remove(book);
-            await _db.SaveChangesAsync(ct);
 
-            if (!string.IsNullOrWhiteSpace(book.BCoverFileName))
+            try
             {
-                _bCoverStorage.DeleteImg(book.BCoverFileName);
+                await _db.SaveChangesAsync(ct);
+                _logger.LogInformation("[BOOK_DELETE_SUCCESS] Id: {Id}", id);
+                if (!string.IsNullOrWhiteSpace(book.BCoverFileName))
+                {
+                    _bCoverStorage.DeleteImg(book.BCoverFileName);
+                }
+                return true;
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[BOOK_DALETE_FAIL] , Id: {Id} , Title: {Title}", id, book.Title);
+                return false;
             }
 
-            return true;
+
         }
 
 
